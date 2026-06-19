@@ -1,10 +1,10 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class HyperFPSController : MonoBehaviour
+public class PlayerControler : MonoBehaviour
 {
+    [HideInInspector] public CharacterController characterController;
     public Transform cameraTransform;
-    private CharacterController characterController;
 
     [Header("Movement Speeds")]
     public float defaultWalkSpeed = 6f;
@@ -18,21 +18,21 @@ public class HyperFPSController : MonoBehaviour
     [Range(0f, 1f)]
     public float airControlRate = 0.35f;
 
-    [Header("Sliding Settings (슬라이딩)")]
+    [Header("Sliding Settings")]
     public float slideBoost = 12f;
     public float slideDeceleration = 2.5f;
-    public float minSlideSpeed = 4f; // 이 속도 이하로 떨어지면 자동으로 일어남
+    public float minSlideSpeed = 4f;
     [Range(0f, 1f)]
     public float slideSteeringRate = 0.15f;
 
-    [Header("Crouch / Stand Speeds (앉기 및 일어서기 속도)")]
+    [Header("Crouch / Stand Speeds")]
     public float crouchSpeed = 12f;
     public float standUpSpeed = 10f;
 
     [Header("Character Height")]
-    private float normalHeight;
+    [HideInInspector] public float normalHeight;
     public float lowHeight = 0.8f;
-    private float currentHeight;
+    [HideInInspector] public float currentHeight;
 
     [Header("Jump Setting")]
     public float jumpHeight = 2.5f;
@@ -40,15 +40,14 @@ public class HyperFPSController : MonoBehaviour
     [Header("Mouse Sensitivity")]
     public float mouseSensitivity = 2f;
 
+    [HideInInspector] public bool isSwing = false;
+    private bool isSliding = false;
+    private bool isCrouching = false;
+
     private float xRotation = 0f;
     private float yRotation = 0f;
-
     private Vector3 currentHorizontalVelocity;
     private float verticalVelocity = 0f;
-
-    // --- [핵심] 상태 변수 ---
-    private bool isSliding = false;   // 슬라이딩 중인가?
-    private bool isCrouching = false; // 그냥 앉아있는 중인가?
 
     void Start()
     {
@@ -63,9 +62,15 @@ public class HyperFPSController : MonoBehaviour
     void Update()
     {
         HandleMouseRotation();
+
+        if (isSwing)
+        {
+            AdjustHeight(normalHeight, standUpSpeed);
+            return;
+        }
+
         HandleJump();
 
-        // 1. 기본 입력 및 속도 체크
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
         Vector3 inputDirection = (transform.right * horizontal + transform.forward * vertical).normalized;
@@ -73,71 +78,34 @@ public class HyperFPSController : MonoBehaviour
         float speedMagnitude = currentHorizontalVelocity.magnitude;
         bool isSprinting = Input.GetKey(KeyCode.LeftShift) && inputDirection.magnitude > 0;
 
-        // ---------------------------------------------------------
-        // 2. [핵심] C키 입력 로직 (토글 및 조건 분기)
-        // ---------------------------------------------------------
         if (Input.GetKeyDown(KeyCode.C))
         {
-            if (isCrouching)
+            if (isCrouching) isCrouching = false;
+            else if (isSliding) isSliding = false;
+            else if (characterController.isGrounded)
             {
-                // 이미 그냥 앉아있는 상태였다면 -> 일어서기
-                isCrouching = false;
-            }
-            else if (isSliding)
-            {
-                // 슬라이딩 중에 C를 한 번 더 누르면 -> 슬라이딩 취소하고 일어서기
-                isSliding = false;
-            }
-            else // 완전히 서 있는 상태일 때
-            {
-                if (characterController.isGrounded)
+                if (isSprinting && speedMagnitude > defaultWalkSpeed * 0.6f)
                 {
-                    // [조건 1] 충분히 달리는 속도일 때 C를 누르면 -> 슬라이딩!
-                    if (isSprinting && speedMagnitude > defaultWalkSpeed * 0.6f)
-                    {
-                        isSliding = true;
-                        currentHorizontalVelocity = currentHorizontalVelocity.normalized * slideBoost;
-                    }
-                    // [조건 2] 속도가 느리거나 멈춰있을 때 C를 누르면 -> 일반 앉기!
-                    else
-                    {
-                        isCrouching = true;
-                    }
+                    isSliding = true;
+                    currentHorizontalVelocity = currentHorizontalVelocity.normalized * slideBoost;
                 }
+                else isCrouching = true;
             }
         }
 
-        // ---------------------------------------------------------
-        // 3. 슬라이딩 자동 해제 체크
-        // ---------------------------------------------------------
-        if (isSliding)
+        if (isSliding && (speedMagnitude < minSlideSpeed || !characterController.isGrounded))
         {
-            // 속도가 기준치(minSlideSpeed)보다 떨어지거나 공중에 뜨면 슬라이딩 해제 (자동으로 일어남)
-            if (speedMagnitude < minSlideSpeed || !characterController.isGrounded)
-            {
-                isSliding = false;
-                //isCrouching은 여전히 false이므로 캐릭터는 서 있는 상태(normalHeight)로 돌아갑니다.
-            }
+            isSliding = false;
         }
 
-        // ---------------------------------------------------------
-        // 4. 실시간 콜라이더 높이 및 카메라 Lerp 연산
-        // ---------------------------------------------------------
         bool isInLowState = isSliding || isCrouching;
         float targetHeight = isInLowState ? lowHeight : normalHeight;
         float currentHeightChangeSpeed = isInLowState ? crouchSpeed : standUpSpeed;
+        AdjustHeight(targetHeight, currentHeightChangeSpeed);
 
-        currentHeight = Mathf.MoveTowards(currentHeight, targetHeight, currentHeightChangeSpeed * Time.deltaTime);
-
-        characterController.height = currentHeight;
-        characterController.center = new Vector3(0, currentHeight / 2f, 0);
-        cameraTransform.localPosition = new Vector3(0, currentHeight * 0.9f, 0);
-
-        // 5. 이동 속도 제어 및 관성 (Steering)
         HandleSteeringInertia(inputDirection, speedMagnitude);
         HandleVelocityMovement(inputDirection, isSprinting);
 
-        // 커서 해제
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
@@ -145,7 +113,35 @@ public class HyperFPSController : MonoBehaviour
         }
     }
 
-    // --- 이하 로직 헬퍼 함수들 ---
+    public Vector3 GetCurrentVelocity()
+    {
+        return new Vector3(currentHorizontalVelocity.x, verticalVelocity, currentHorizontalVelocity.z);
+    }
+
+    public void SetVelocityFromGrapple(Vector3 newVelocity)
+    {
+        currentHorizontalVelocity = new Vector3(newVelocity.x, 0, newVelocity.z);
+        verticalVelocity = newVelocity.y;
+    }
+
+    public void CancelLowPostures()
+    {
+        isSliding = false;
+        isCrouching = false;
+    }
+
+    public void MoveByGrappler(Vector3 swingVelocity)
+    {
+        characterController.Move(swingVelocity * Time.deltaTime);
+    }
+
+    void AdjustHeight(float targetH, float changeSpeed)
+    {
+        currentHeight = Mathf.MoveTowards(currentHeight, targetH, changeSpeed * Time.deltaTime);
+        characterController.height = currentHeight;
+        characterController.center = new Vector3(0, currentHeight / 2f, 0);
+        cameraTransform.localPosition = new Vector3(0, currentHeight * 0.9f, 0);
+    }
 
     void HandleMouseRotation()
     {
@@ -167,7 +163,7 @@ public class HyperFPSController : MonoBehaviour
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * Physics.gravity.y);
                 isSliding = false;
-                isCrouching = false; // 점프하면 모든 앉기/슬라이딩 상태 해제
+                isCrouching = false;
             }
         }
         else
@@ -199,18 +195,33 @@ public class HyperFPSController : MonoBehaviour
         if (inputDirection.magnitude > 0)
         {
             if (isSliding) targetMaxSpeed = 0f;
-            else if (isCrouching) targetMaxSpeed = crouchWalkSpeed; // 앉은 상태의 이동속도 적용
+            else if (isCrouching) targetMaxSpeed = crouchWalkSpeed;
             else targetMaxSpeed = isSprinting ? defaultWalkSpeed * runSpeedMultiplier : defaultWalkSpeed;
         }
 
         Vector3 targetVelocity = inputDirection * targetMaxSpeed;
 
+        // --- [핵심 수정 부분] ---
+        // 지상 가속도와 감속도를 베이스로 가져옴
+        float currentAccel = acceleration;
         float currentDecel = deceleration;
-        if (!characterController.isGrounded) currentDecel *= airControlRate;
-        else if (isSliding) currentDecel = slideDeceleration;
 
-        float effectRate = (targetVelocity.magnitude > 0.01f && !isSliding) ? acceleration : currentDecel;
+        // 공중에 있을 경우, 가속도와 감속도 모두에 airControlRate를 곱해버림!
+        if (!characterController.isGrounded)
+        {
+            currentAccel *= airControlRate;
+            currentDecel *= airControlRate;
+        }
+        else if (isSliding)
+        {
+            currentDecel = slideDeceleration;
+        }
+
+        // 입력이 있으면 가속도(currentAccel)를, 입력이 없거나 슬라이딩 중이면 감속도(currentDecel)를 적용
+        float effectRate = (targetVelocity.magnitude > 0.01f && !isSliding) ? currentAccel : currentDecel;
+
         currentHorizontalVelocity = Vector3.Lerp(currentHorizontalVelocity, targetVelocity, Time.deltaTime * effectRate);
+        // ------------------------
 
         Vector3 finalMoveVelocity = currentHorizontalVelocity;
         finalMoveVelocity.y = verticalVelocity;
