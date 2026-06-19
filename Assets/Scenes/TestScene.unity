@@ -351,9 +351,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 747638082}
-  - component: {fileID: 747638081}
   - component: {fileID: 747638080}
-  - component: {fileID: 747638079}
+  - component: {fileID: 747638086}
   - component: {fileID: 747638083}
   - component: {fileID: 747638084}
   m_Layer: 0
@@ -363,29 +362,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!136 &747638079
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 747638078}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &747638080
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -435,14 +411,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &747638081
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 747638078}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &747638082
 Transform:
   m_ObjectHideFlags: 0
@@ -452,7 +420,7 @@ Transform:
   m_GameObject: {fileID: 747638078}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 1.84, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -471,12 +439,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b73c144672b0824bb0261b1c704d858, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerControler
-  defaultWalkSpeed: 5
+  cameraTransform: {fileID: 2071957392}
+  defaultWalkSpeed: 10
   runSpeedMultiplier: 1.25
-  mouseSensitivity: 1
-  xRotation: 0
-  yRotation: 0
-  finalSpeed: 0
+  crouchWalkSpeed: 2.5
+  acceleration: 5
+  deceleration: 5
+  groundSteeringSpeed: 360
+  airControlRate: 0.03
+  slideBoost: 12
+  slideDeceleration: 2.5
+  minSlideSpeed: 1
+  slideSteeringRate: 0.1
+  crouchSpeed: 10
+  standUpSpeed: 8
+  lowHeight: 0.8
+  jumpHeight: 1
+  mouseSensitivity: 10
 --- !u!114 &747638084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491,6 +470,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Grappler
   isColliderInShotRange: 0
   isSwing: 0
+--- !u!143 &747638086
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747638078}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &767436751
 GameObject:
   m_ObjectHideFlags: 0
