@@ -55,8 +55,12 @@ public class Grappler : MonoBehaviour
                     }
                 }
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
             // 이미 날아가고 있거나 스윙 중이면 해제
-            else if (isWireFlying || fpsController.isSwing)
+            if (isWireFlying || fpsController.isSwing)
             {
                 StopGrapple();
             }

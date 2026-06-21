@@ -378,7 +378,7 @@ MonoBehaviour:
   acceleration: 5
   deceleration: 5
   groundSteeringSpeed: 360
-  airControlRate: 0
+  airControlRate: 0.01
   slideBoost: 12
   slideDeceleration: 2.5
   minSlideSpeed: 1.5
@@ -408,4 +408,4 @@ MonoBehaviour:
   grappleMaxDistance: 100
   wireShootSpeed: 60
   grapplePullSpeed: 20
-  grappleCooldown: 2
+  grappleCooldown: 1
