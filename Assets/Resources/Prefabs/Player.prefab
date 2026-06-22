@@ -403,9 +403,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ad2c6845e18bfe4781d2889944cc08a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Grappler
-  fpsController: {fileID: 4874066285251060337}
+  playerController: {fileID: 0}
   wireRenderer: {fileID: 5733425436192460052}
-  grappleMaxDistance: 100
+  grappleMaxDistance: 70
   wireShootSpeed: 60
-  grapplePullSpeed: 20
+  grapplePullSpeed: 30
   grappleCooldown: 1
+  fallDampenRate: 5
+  extraTimeoutBuffer: 0.1

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerControler : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
     [HideInInspector] public CharacterController characterController;
     public Transform cameraTransform;
@@ -41,6 +41,8 @@ public class PlayerControler : MonoBehaviour
     public float mouseSensitivity = 2f;
 
     [HideInInspector] public bool isSwing = false;
+    [HideInInspector] public Vector3 latestWallNormal; // [신규] 가장 최근에 부딪힌 벽의 각도 저장
+
     private bool isSliding = false;
     private bool isCrouching = false;
 
@@ -113,6 +115,16 @@ public class PlayerControler : MonoBehaviour
         }
     }
 
+    // --- [신규 추가] 플레이어가 무언가에 부딪힐 때마다 표면의 각도 계산 ---
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        // 바닥이 아니라 벽(측면)에 가까운 각도라면 그 노멀(Normal) 벡터를 저장해 둠
+        if (Mathf.Abs(hit.normal.y) < 0.5f)
+        {
+            latestWallNormal = hit.normal;
+        }
+    }
+
     public Vector3 GetCurrentVelocity()
     {
         return new Vector3(currentHorizontalVelocity.x, verticalVelocity, currentHorizontalVelocity.z);
@@ -130,9 +142,9 @@ public class PlayerControler : MonoBehaviour
         isCrouching = false;
     }
 
-    public void MoveByGrappler(Vector3 swingVelocity)
+    public CollisionFlags MoveByGrappler(Vector3 swingVelocity)
     {
-        characterController.Move(swingVelocity * Time.deltaTime);
+        return characterController.Move(swingVelocity * Time.deltaTime);
     }
 
     void AdjustHeight(float targetH, float changeSpeed)
@@ -201,12 +213,9 @@ public class PlayerControler : MonoBehaviour
 
         Vector3 targetVelocity = inputDirection * targetMaxSpeed;
 
-        // --- [핵심 수정 부분] ---
-        // 지상 가속도와 감속도를 베이스로 가져옴
         float currentAccel = acceleration;
         float currentDecel = deceleration;
 
-        // 공중에 있을 경우, 가속도와 감속도 모두에 airControlRate를 곱해버림!
         if (!characterController.isGrounded)
         {
             currentAccel *= airControlRate;
@@ -217,14 +226,26 @@ public class PlayerControler : MonoBehaviour
             currentDecel = slideDeceleration;
         }
 
-        // 입력이 있으면 가속도(currentAccel)를, 입력이 없거나 슬라이딩 중이면 감속도(currentDecel)를 적용
         float effectRate = (targetVelocity.magnitude > 0.01f && !isSliding) ? currentAccel : currentDecel;
-
         currentHorizontalVelocity = Vector3.Lerp(currentHorizontalVelocity, targetVelocity, Time.deltaTime * effectRate);
-        // ------------------------
 
         Vector3 finalMoveVelocity = currentHorizontalVelocity;
         finalMoveVelocity.y = verticalVelocity;
-        characterController.Move(finalMoveVelocity * Time.deltaTime);
+
+        CollisionFlags flags = characterController.Move(finalMoveVelocity * Time.deltaTime);
+
+        // 천장 충돌 처리
+        if ((flags & CollisionFlags.Above) != 0 && verticalVelocity > 0)
+        {
+            verticalVelocity = 0f;
+        }
+
+        // --- [신규 추가] 공중에서 벽에 닿았을 때 수평 관성을 벽면을 따라가도록 투영(꺾기) ---
+        if ((flags & CollisionFlags.Sides) != 0 && !characterController.isGrounded)
+        {
+            Vector3 projectedVel = Vector3.ProjectOnPlane(currentHorizontalVelocity, latestWallNormal);
+            // Y축(상하)은 건드리지 않고 오직 수평 이동 방향만 꺾어줌
+            currentHorizontalVelocity = new Vector3(projectedVel.x, 0f, projectedVel.z);
+        }
     }
 }
