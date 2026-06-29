@@ -230,37 +230,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1329104123794066060, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.68457437
-      objectReference: {fileID: 0}
-    - target: {fileID: 1329104123794066060, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.72894305
-      objectReference: {fileID: 0}
-    - target: {fileID: 1329104123794066060, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -93.596
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: grapplePullSpeed
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: grappleMaxDistance
-      value: 70
-      objectReference: {fileID: 0}
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.2539
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.00001
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 10.3612
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalRotation.w
@@ -289,14 +269,6 @@ PrefabInstance:
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4874066285251060337, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: airControlRate
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 4874066285251060337, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: mouseSensitivity
-      value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 8572096997197836421, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_Name

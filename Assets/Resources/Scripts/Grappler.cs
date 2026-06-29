@@ -61,11 +61,8 @@ public class Grappler : MonoBehaviour
                         float wireFlyingTime = distance / wireShootSpeed;
                         float playerTravelTime = distance / grapplePullSpeed;
 
-                        // --- [핵심 추가] 관성에 비례한 추가 유예 시간 계산 ---
-                        // 플레이어가 현재 가진 속도가 빠를수록, 방향 전환에 시간이 더 필요하므로 제한 시간을 늘려줍니다.
                         float currentSpeed = playerController.GetCurrentVelocity().magnitude;
-                        float momentumBonusTime = currentSpeed * 0.15f; // 속도 10당 1.5초의 추가 유예 시간 부여
-                                                                        // -----------------------------------------------------
+                        float momentumBonusTime = currentSpeed * 0.15f;
 
                         maxSwingTime = wireFlyingTime + playerTravelTime + extraTimeoutBuffer + momentumBonusTime;
                         swingTimer = 0f;
@@ -101,7 +98,7 @@ public class Grappler : MonoBehaviour
                 isWireFlying = false;
                 playerController.isSwing = true;
 
-                playerController.CancelLowPostures();
+                // 슬라이딩/앉기 취소 로직 삭제 완료
                 inheritedVelocity = playerController.GetCurrentVelocity();
             }
         }
