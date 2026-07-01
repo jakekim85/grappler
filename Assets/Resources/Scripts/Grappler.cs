@@ -6,6 +6,8 @@ public class Grappler : MonoBehaviour
     [Header("References")]
     public PlayerController playerController;
     public LineRenderer wireRenderer;
+    public Transform wireStartVisual;
+    public Transform wireEndVisual;
 
     [Header("Grappling Hook Settings")]
     public float grappleMaxDistance = 30f;
@@ -21,7 +23,7 @@ public class Grappler : MonoBehaviour
     [Range(4, 60)] public int maxWireSegments = 30;
     public float wireSegmentSpacing = 1.2f;
     public float wireSag = 0.6f;
-    public float wireFollowSpeed = 15f;
+    public float wireFollowSpeed = 30f;
 
     private bool isWireFlying = false;
     private Vector3 grappleTargetPos;
@@ -179,21 +181,41 @@ public class Grappler : MonoBehaviour
 
         if (isWireFlying)
         {
+            Vector3 origin = GetWireOrigin();
             wireRenderer.enabled = true;
-            SimulateRope(GetWireOrigin(), wireTipPos, Time.deltaTime);
+            SimulateRope(origin, wireTipPos, Time.deltaTime);
             wireRenderer.positionCount = ropePoints.Count;
             wireRenderer.SetPositions(ropePoints.ToArray());
+            SetTipVisuals(true, origin, wireTipPos);
         }
         else if (playerController.isSwing)
         {
+            Vector3 origin = GetWireOrigin();
             wireRenderer.positionCount = 2;
             wireRenderer.enabled = true;
-            wireRenderer.SetPosition(0, GetWireOrigin());
+            wireRenderer.SetPosition(0, origin);
             wireRenderer.SetPosition(1, grappleTargetPos);
+            SetTipVisuals(true, origin, grappleTargetPos);
         }
         else
         {
             wireRenderer.enabled = false;
+            SetTipVisuals(false, Vector3.zero, Vector3.zero);
+        }
+    }
+
+    private void SetTipVisuals(bool visible, Vector3 startPos, Vector3 endPos)
+    {
+        if (wireStartVisual != null)
+        {
+            wireStartVisual.gameObject.SetActive(visible);
+            if (visible) wireStartVisual.position = startPos;
+        }
+
+        if (wireEndVisual != null)
+        {
+            wireEndVisual.gameObject.SetActive(visible);
+            if (visible) wireEndVisual.position = endPos;
         }
     }
 
@@ -219,8 +241,7 @@ public class Grappler : MonoBehaviour
         {
             int insertIndex = ropePoints.Count - 1;
             Vector3 straightPoint = Vector3.Lerp(ropePoints[ropePoints.Count - 2], tip, 0.5f);
-            float estimatedT = (float)insertIndex / ropePoints.Count;
-            Vector3 saggedPoint = straightPoint + Vector3.down * wireSag * (1f - estimatedT);
+            Vector3 saggedPoint = straightPoint + Vector3.down * wireSag;
             ropePoints.Insert(insertIndex, saggedPoint);
         }
 
@@ -230,12 +251,20 @@ public class Grappler : MonoBehaviour
         for (int i = 1; i < last; i++)
         {
             float t = (float)i / last;
-            float physicsInfluence = 1f - t;
 
             Vector3 idealPos = Vector3.Lerp(origin, tip, t);
-            Vector3 targetPos = idealPos + Vector3.down * wireSag * physicsInfluence;
+            Vector3 targetPos = idealPos + Vector3.down * wireSag;
 
             ropePoints[i] = Vector3.Lerp(ropePoints[i], targetPos, followRate);
+
+            // like a rope in hand: the closer a point is to either end, the less slack
+            // it's allowed to have, so the wire can never visibly detach no matter the speed
+            float maxLag = Mathf.Min(i, last - i) * wireSegmentSpacing;
+            Vector3 offset = ropePoints[i] - targetPos;
+            if (offset.magnitude > maxLag)
+            {
+                ropePoints[i] = targetPos + offset.normalized * maxLag;
+            }
         }
     }
 }

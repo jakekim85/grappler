@@ -230,50 +230,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1329104123794066060, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1329104123794066060, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.45
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: wireSag
-      value: 0.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: wireDamping
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: wireGravity
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: maxWireSegments
-      value: 60
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: minWireSegments
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: tipStraightness
-      value: 0.8
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: wireSegmentCount
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: grappleMaxDistance
-      value: 200
-      objectReference: {fileID: 0}
-    - target: {fileID: 3355170953007437468, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: wireSegmentSpacing
-      value: 0.7
-      objectReference: {fileID: 0}
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -313,14 +269,6 @@ PrefabInstance:
     - target: {fileID: 3429169678333376418, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5733425436192460052, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_Parameters.numCapVertices
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 5733425436192460052, guid: f436453c6205ec44a9412622aabffd71, type: 3}
-      propertyPath: m_Parameters.numCornerVertices
-      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8572096997197836421, guid: f436453c6205ec44a9412622aabffd71, type: 3}
       propertyPath: m_Name
