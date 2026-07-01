@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Grappler : MonoBehaviour
 {
@@ -16,6 +17,12 @@ public class Grappler : MonoBehaviour
     public float fallDampenRate = 5f;
     public float extraTimeoutBuffer = 1.0f;
 
+    [Header("Wire Rope Physics")]
+    [Range(4, 60)] public int maxWireSegments = 30;
+    public float wireSegmentSpacing = 1.2f;
+    public float wireSag = 0.6f;
+    public float wireFollowSpeed = 15f;
+
     private bool isWireFlying = false;
     private Vector3 grappleTargetPos;
     private Vector3 wireTipPos;
@@ -25,6 +32,8 @@ public class Grappler : MonoBehaviour
 
     private float maxSwingTime;
     private float swingTimer = 0f;
+    private float previousSwingDistance = float.MaxValue;
+    private List<Vector3> ropePoints;
 
     private Camera cam;
 
@@ -55,6 +64,7 @@ public class Grappler : MonoBehaviour
                         grappleTargetPos = hit.point;
                         isWireFlying = true;
                         wireTipPos = cam.transform.position;
+                        InitRope(GetWireOrigin(), wireTipPos);
 
                         float distance = Vector3.Distance(cam.transform.position, grappleTargetPos);
 
@@ -100,6 +110,7 @@ public class Grappler : MonoBehaviour
 
                 // 슬라이딩/앉기 취소 로직 삭제 완료
                 inheritedVelocity = playerController.GetCurrentVelocity();
+                previousSwingDistance = float.MaxValue;
             }
         }
 
@@ -110,7 +121,7 @@ public class Grappler : MonoBehaviour
                 inheritedVelocity.y = Mathf.Lerp(inheritedVelocity.y, 0f, fallDampenRate * Time.deltaTime);
             }
 
-            Vector3 playerCenter = transform.position + Vector3.up * (playerController.currentHeight / 2f);
+            Vector3 playerCenter = playerController.characterController.bounds.center;
             Vector3 pullDir = (grappleTargetPos - playerCenter).normalized;
 
             Vector3 swingVelocity = (pullDir * grapplePullSpeed) + inheritedVelocity;
@@ -135,9 +146,15 @@ public class Grappler : MonoBehaviour
                 return;
             }
 
-            if (Vector3.Distance(playerCenter, grappleTargetPos) < 1.5f)
+            float currentDistanceToTarget = Vector3.Distance(playerCenter, grappleTargetPos);
+
+            if (currentDistanceToTarget < 1.5f || currentDistanceToTarget > previousSwingDistance)
             {
                 StopGrapple();
+            }
+            else
+            {
+                previousSwingDistance = currentDistanceToTarget;
             }
         }
 
@@ -160,15 +177,65 @@ public class Grappler : MonoBehaviour
     {
         if (wireRenderer == null) return;
 
-        if (isWireFlying || playerController.isSwing)
+        if (isWireFlying)
         {
             wireRenderer.enabled = true;
-            wireRenderer.SetPosition(0, cam.transform.position + (transform.right * 0.3f) - (transform.up * 0.2f));
-            wireRenderer.SetPosition(1, isWireFlying ? wireTipPos : grappleTargetPos);
+            SimulateRope(GetWireOrigin(), wireTipPos, Time.deltaTime);
+            wireRenderer.positionCount = ropePoints.Count;
+            wireRenderer.SetPositions(ropePoints.ToArray());
+        }
+        else if (playerController.isSwing)
+        {
+            wireRenderer.positionCount = 2;
+            wireRenderer.enabled = true;
+            wireRenderer.SetPosition(0, GetWireOrigin());
+            wireRenderer.SetPosition(1, grappleTargetPos);
         }
         else
         {
             wireRenderer.enabled = false;
+        }
+    }
+
+
+    private Vector3 GetWireOrigin()
+    {
+        return cam.transform.position + (cam.transform.forward * 0.4f) + (cam.transform.right * 0.3f) - (cam.transform.up * 0.2f);
+    }
+
+    private void InitRope(Vector3 origin, Vector3 tip)
+    {
+        ropePoints = new List<Vector3> { origin, tip };
+    }
+
+    private void SimulateRope(Vector3 origin, Vector3 tip, float dt)
+    {
+        if (ropePoints == null) InitRope(origin, tip);
+
+        ropePoints[0] = origin;
+        ropePoints[ropePoints.Count - 1] = tip;
+
+        while (ropePoints.Count < maxWireSegments && Vector3.Distance(ropePoints[ropePoints.Count - 2], tip) > wireSegmentSpacing)
+        {
+            int insertIndex = ropePoints.Count - 1;
+            Vector3 straightPoint = Vector3.Lerp(ropePoints[ropePoints.Count - 2], tip, 0.5f);
+            float estimatedT = (float)insertIndex / ropePoints.Count;
+            Vector3 saggedPoint = straightPoint + Vector3.down * wireSag * (1f - estimatedT);
+            ropePoints.Insert(insertIndex, saggedPoint);
+        }
+
+        int last = ropePoints.Count - 1;
+        float followRate = 1f - Mathf.Exp(-wireFollowSpeed * dt);
+
+        for (int i = 1; i < last; i++)
+        {
+            float t = (float)i / last;
+            float physicsInfluence = 1f - t;
+
+            Vector3 idealPos = Vector3.Lerp(origin, tip, t);
+            Vector3 targetPos = idealPos + Vector3.down * wireSag * physicsInfluence;
+
+            ropePoints[i] = Vector3.Lerp(ropePoints[i], targetPos, followRate);
         }
     }
 }

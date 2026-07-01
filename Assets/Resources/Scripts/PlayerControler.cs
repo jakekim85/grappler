@@ -25,7 +25,6 @@ public class PlayerController : MonoBehaviour
 
     [HideInInspector] public bool isSwing = false;
     [HideInInspector] public Vector3 latestWallNormal;
-    [HideInInspector] public float currentHeight;
 
     private float xRotation = 0f;
     private float yRotation = 0f;
@@ -38,7 +37,6 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
 
         characterController = GetComponent<CharacterController>();
-        currentHeight = characterController.height; // Grappler에서 참조하기 위해 초기 높이만 저장해둠
     }
 
     void Update()
